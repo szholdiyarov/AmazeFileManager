@@ -128,6 +128,7 @@ dependencies {
     //compile files('libs/ftpserver-core-1.1.0-SNAPSHOT.jar')
     // https://mvnrepository.com/artifact/org.apache.ftpserver/ftpserver-core
     compile group: 'org.apache.ftpserver', name: 'ftpserver-core', version: '1.1.0'
+    compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.14'
 
     //compile 'com.jcraft:jsch:0.1.53'
     compile 'com.android.volley:volley:1.0.0'
