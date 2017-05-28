@@ -28,6 +28,10 @@ android {
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/DEPENDENCIES.txt'
         exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/spring.handlers'
+        exclude 'META-INF/spring.schemas'
+        exclude 'META-INF/cxf/bus-extensions.txt'
     }
 
     defaultConfig {
@@ -94,10 +98,12 @@ android {
             signingConfig signingConfigs.config
         }
     }
+
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+
     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
 
     compile 'com.android.support:design:25.3.1'
@@ -131,13 +137,13 @@ dependencies {
 
     //compile files('libs/ftplet-api-1.1.0-SNAPSHOT.jar')
     // https://mvnrepository.com/artifact/org.apache.ftpserver/ftplet-api
-    compile group: 'org.apache.ftpserver', name: 'ftplet-api', version: '1.1.0'
 
     //compile files('libs/ftpserver-core-1.1.0-SNAPSHOT.jar')
     // https://mvnrepository.com/artifact/org.apache.ftpserver/ftpserver-core
     compile group: 'org.apache.ftpserver', name: 'ftpserver-core', version: '1.1.0'
-    compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.14'
-
+    compile ('org.apache.tika:tika-parsers:1.14') {
+        exclude group: 'org.apache.xmlbeans', module: 'xmlbeans'
+    }
     //compile 'com.jcraft:jsch:0.1.53'
     compile 'com.android.volley:volley:1.0.0'
     
