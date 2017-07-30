@@ -11,6 +11,7 @@ public enum OpenMode {
     UNKNOWN,
     FILE,
     SMB,
+    FTP,
 
     /**
      * Custom file types like apk/images/downloads (which don't have a defined path)
