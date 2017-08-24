@@ -131,6 +131,7 @@ import com.amaze.filemanager.utils.PreferenceUtils;
 import com.amaze.filemanager.utils.ServiceWatcherUtil;
 import com.amaze.filemanager.utils.TinyDB;
 import com.amaze.filemanager.utils.Utils;
+import com.amaze.filemanager.utils.cloud.MainActivityLoaderCallback;
 import com.amaze.filemanager.utils.color.ColorUsage;
 import com.amaze.filemanager.utils.files.Futils;
 import com.amaze.filemanager.utils.theme.AppTheme;
@@ -163,7 +164,7 @@ import static com.amaze.filemanager.fragments.preference_fragments.Preffrag.PREF
 public class MainActivity extends ThemedActivity implements OnRequestPermissionsResultCallback,
         SmbConnectionListener, DataChangeListener, BookmarkCallback,
         SearchWorkerFragment.HelperCallbacks, CloudConnectionCallbacks,
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, MainActivityLoaderCallback.Delegate {
 
     public static final Pattern DIR_SEPARATOR = Pattern.compile("/");
     public static final String TAG_ASYNC_HELPER = "async_helper";
@@ -262,7 +263,6 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
     public static final String KEY_INTENT_PROCESS_VIEWER = "openprocesses";
     public static final String TAG_INTENT_FILTER_FAILED_OPS = "failedOps";
     public static final String TAG_INTENT_FILTER_GENERAL = "general_communications";
-    public static final String ARGS_KEY_LOADER = "loader_cloud_args_service";
 
     private static final String CLOUD_AUTHENTICATOR_GDRIVE = "android.intent.category.BROWSABLE";
     private static final String CLOUD_AUTHENTICATOR_REDIRECT_URI = "com.amaze.filemanager:/oauth2redirect";
@@ -275,8 +275,6 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
 
     private static HandlerThread handlerThread;
 
-    private static final int REQUEST_CODE_CLOUD_LIST_KEYS = 5463;
-    private static final int REQUEST_CODE_CLOUD_LIST_KEY = 5472;
 
     private static final String KEY_PREFERENCE_BOOKMARKS_ADDED = "books_added";
 
@@ -295,7 +293,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
         appbar = new AppBar(this, sharedPref, new SearchView.SearchListener() {
             @Override
             public void onSearch(String queue) {
-                if(!queue.isEmpty()) {
+                if (!queue.isEmpty()) {
                     mainActivityHelper.search(queue);
                 }
             }
@@ -440,7 +438,6 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
         }
 
 
-
         if (!sharedPref.getBoolean(KEY_PREFERENCE_BOOKMARKS_ADDED, false)) {
             utilsHandler.addCommonBookmarks();
             sharedPref.edit().putBoolean(KEY_PREFERENCE_BOOKMARKS_ADDED, true).commit();
@@ -475,7 +472,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                         //Commit the transaction
                         transaction.commit();
                         supportInvalidateOptionsMenu();
-                    }  else if (intent.getAction() != null &&
+                    } else if (intent.getAction() != null &&
                             intent.getAction().equals(TileService.ACTION_QS_TILE_PREFERENCES)) {
                         // tile preferences, open ftp fragment
 
@@ -675,11 +672,12 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
 
     /**
      * Method finds whether a USB device is connected or not
+     *
      * @return true if device is connected
      */
     private boolean isUsbDeviceConnected() {
         UsbManager usbManager = (UsbManager) getSystemService(USB_SERVICE);
-        if (usbManager.getDeviceList().size()!=0) {
+        if (usbManager.getDeviceList().size() != 0) {
             // we need to set this every time as there is no way to know that whether USB device was
             // disconnected after closing the app and another one was connected
             // in that case the uri will obviously change
@@ -946,7 +944,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                 if (ma.IS_LIST) s.setTitle(R.string.gridview);
                 else s.setTitle(R.string.listview);
                 appbar.getBottomBar().updatePath(ma.getCurrentPath(), ma.results, MainActivityHelper.SEARCH_TEXT, ma.openMode, ma.folder_count, ma.file_count);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
 
             appbar.getBottomBar().setClickListener();
 
@@ -1144,7 +1143,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                 break;
             case R.id.paste:
                 String path = ma.getCurrentPath();
-                ArrayList<BaseFile> arrayList = COPY_PATH != null? COPY_PATH:MOVE_PATH;
+                ArrayList<BaseFile> arrayList = COPY_PATH != null ? COPY_PATH : MOVE_PATH;
                 boolean move = MOVE_PATH != null;
                 new CopyFileCheck(ma, path, move, mainActivity, ThemedActivity.rootMode)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, arrayList);
@@ -1339,7 +1338,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
     public MainFragment getCurrentMainFragment() {
         TabFragment tab = getTabFragment();
 
-        if(tab != null && tab.getCurrentTabFragment() instanceof MainFragment) {
+        if (tab != null && tab.getCurrentTabFragment() instanceof MainFragment) {
             return (MainFragment) tab.getCurrentTabFragment();
         } else return null;
     }
@@ -1366,7 +1365,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
             for (File f : parent.listFiles())
                 if (f.exists() && f.getName().toLowerCase().contains("usb") && f.canExecute())
                     return f;
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         parent = new File("/mnt/sdcard/usbStorage");
         if (parent.exists() && parent.canExecute())
@@ -1427,7 +1427,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                             CloudHandler.CLOUD_PREFIX_DROPBOX + "/",
                             ContextCompat.getDrawable(this, R.drawable.ic_dropbox_white_24dp)));
 
-                    accountAuthenticationList.add(new String[] {
+                    accountAuthenticationList.add(new String[]{
                             CloudHandler.CLOUD_NAME_DROPBOX,
                             CloudHandler.CLOUD_PREFIX_DROPBOX + "/",
                     });
@@ -1437,7 +1437,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                             CloudHandler.CLOUD_PREFIX_BOX + "/",
                             ContextCompat.getDrawable(this, R.drawable.ic_box_white_24dp)));
 
-                    accountAuthenticationList.add(new String[] {
+                    accountAuthenticationList.add(new String[]{
                             CloudHandler.CLOUD_NAME_BOX,
                             CloudHandler.CLOUD_PREFIX_BOX + "/",
                     });
@@ -1447,7 +1447,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                             CloudHandler.CLOUD_PREFIX_ONE_DRIVE + "/",
                             ContextCompat.getDrawable(this, R.drawable.ic_onedrive_white_24dp)));
 
-                    accountAuthenticationList.add(new String[] {
+                    accountAuthenticationList.add(new String[]{
                             CloudHandler.CLOUD_NAME_ONE_DRIVE,
                             CloudHandler.CLOUD_PREFIX_ONE_DRIVE + "/",
                     });
@@ -1457,7 +1457,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                             CloudHandler.CLOUD_PREFIX_GOOGLE_DRIVE + "/",
                             ContextCompat.getDrawable(this, R.drawable.ic_google_drive_white_24dp)));
 
-                    accountAuthenticationList.add(new String[] {
+                    accountAuthenticationList.add(new String[]{
                             CloudHandler.CLOUD_NAME_GOOGLE_DRIVE,
                             CloudHandler.CLOUD_PREFIX_GOOGLE_DRIVE + "/",
                     });
@@ -1539,7 +1539,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                 // Get Uri from Storage Access Framework.
                 treeUri = intent.getData();
                 // Persist URI - this is required for verification of writability.
-                if (treeUri != null) sharedPref.edit().putString("URI", treeUri.toString()).commit();
+                if (treeUri != null)
+                    sharedPref.edit().putString("URI", treeUri.toString()).commit();
             } else {
                 // If not confirmed SAF, or if still not writable, then revert settings.
                 /* DialogUtil.displayError(getActivity(), R.string.message_dialog_cannot_write_to_folder_saf, false, currentFolder);
@@ -1560,7 +1561,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                     break;
                 case DataUtils.COPY://copying
                     //legacy compatibility
-                    if(oparrayList != null && oparrayList.size() != 0) {
+                    if (oparrayList != null && oparrayList.size() != 0) {
                         oparrayListList = new ArrayList<>();
                         oparrayListList.add(oparrayList);
                         oparrayList = null;
@@ -1577,7 +1578,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                     break;
                 case DataUtils.MOVE://moving
                     //legacy compatibility
-                    if(oparrayList != null && oparrayList.size() != 0) {
+                    if (oparrayList != null && oparrayList.size() != 0) {
                         oparrayListList = new ArrayList<>();
                         oparrayListList.add(oparrayList);
                         oparrayList = null;
@@ -1666,7 +1667,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
         frameLayout = (FrameLayout) findViewById(R.id.content_frame);
         indicator_layout = findViewById(R.id.indicator_layout);
         mDrawerLinear = (ScrimInsetsRelativeLayout) findViewById(R.id.left_drawer);
-        if (getAppTheme().equals(AppTheme.DARK)) mDrawerLinear.setBackgroundColor(Utils.getColor(this, R.color.holo_dark_background));
+        if (getAppTheme().equals(AppTheme.DARK))
+            mDrawerLinear.setBackgroundColor(Utils.getColor(this, R.color.holo_dark_background));
         else mDrawerLinear.setBackgroundColor(Color.WHITE);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         //mDrawerLayout.setStatusBarBackgroundColor(Color.parseColor((currentTab==1 ? skinTwo : skin)));
@@ -1695,7 +1697,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
             @Override
             public void onClick(View view) {
                 floatingActionButton.close(true);
-                if (getAppbar().getSearchView().isEnabled()) getAppbar().getSearchView().hideSearchView();
+                if (getAppbar().getSearchView().isEnabled())
+                    getAppbar().getSearchView().hideSearchView();
             }
         });
 
@@ -2005,7 +2008,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                         }
 
                         @Override
-                        public void onErrorResponse(VolleyError error) {}
+                        public void onErrorResponse(VolleyError error) {
+                        }
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -2222,8 +2226,8 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
     }
 
     @Override
-    public void onProgressUpdate(BaseFile val , String query) {
-        mainFragment.addSearchResult(val,query);
+    public void onProgressUpdate(BaseFile val, String query) {
+        mainFragment.addSearchResult(val, query);
     }
 
     @Override
@@ -2288,7 +2292,7 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
 
         Uri uri = Uri.withAppendedPath(Uri.parse("content://" + CloudContract.PROVIDER_AUTHORITY), "/keys.db/secret_keys");
 
-        String[] projection = new String[] {
+        String[] projection = new String[]{
                 CloudContract.COLUMN_ID,
                 CloudContract.COLUMN_CLIENT_ID,
                 CloudContract.COLUMN_CLIENT_SECRET_KEY
@@ -2323,10 +2327,10 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
                     String ids[] = new String[cloudEntries.size() + 1];
 
                     ids[0] = 1 + "";
-                    for (int i=1; i<=cloudEntries.size(); i++) {
+                    for (int i = 1; i <= cloudEntries.size(); i++) {
 
                         // we need to get only those cloud details which user wants
-                        switch (cloudEntries.get(i-1).getServiceType()) {
+                        switch (cloudEntries.get(i - 1).getServiceType()) {
                             case GDRIVE:
                                 ids[i] = 2 + "";
                                 break;
@@ -2608,5 +2612,24 @@ public class MainActivity extends ThemedActivity implements OnRequestPermissions
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+
+    @Override
+    public List<CloudEntry> getAllEntries() {
+        try {
+            return cloudHandler.getAllEntries();
+        } catch (CloudPluginException pluginException) {
+            Toast.makeText(this, getResources().getString(R.string.cloud_error_plugin),
+                    Toast.LENGTH_LONG).show();
+            return Collections.emptyList();
+        }
+
+    }
+
+    @Override
+    public void onLoadedPluginException() {
+        Toast.makeText(this, getResources().getString(R.string.cloud_error_plugin),
+                Toast.LENGTH_LONG).show();
     }
 }
